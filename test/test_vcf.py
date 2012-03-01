@@ -188,6 +188,44 @@ class TestWriter(unittest.TestCase):
         for l, r in zip(records, reader2):
             self.assertEquals(l.samples, r.samples)
 
+    def test_info(self):
+        """Make sure whatever was in the input file 
+            is preserved in the output file."""
+        reader_in = vcf.Reader(fh('issue-info-4.1.vcf'))
+        out = StringIO()
+
+        writer = vcf.Writer(out, reader_in)
+        
+        in_records = list(reader_in)
+
+        map(writer.write_record, in_records)
+        out.seek(0)
+        reader_out = vcf.Reader(out)
+
+        lines = out.getvalue().split("\n")
+        self.assertTrue(lines >= 29)
+
+        count_found = 0
+        for line in lines:
+            if line.startswith("20\t14370"):
+                count_found += 1
+                self.assertTrue("NS=3;DP=14;AF=0.5;DB;H2;STR_1=Test1;STR_VARIES=0/0,0/1;STR_2=FIRST,SECOND;STR_A=True;STR_G=Something" in line)
+            elif line.startswith("20\t17330"):
+                count_found += 1
+                self.assertTrue("NS=3;DP=11;AF=0.017;STR_A=False;STR_G=Something;STR_1=Test2;STR_2=Aa,Bb;STR_VARIES=0/0,0/1,1/1" in line)
+            elif line.startswith("20\t1110696"):
+                count_found += 1
+                self.assertTrue("NS=2;DP=10;AF=0.333,0.667;AA=T;DB;STR_1=Test3;STR_2=Bb,Cc;STR_A=False,True;STR_G=Something_else" in line)
+            elif line.startswith("20\t1230237"):
+                count_found += 1
+                self.assertTrue("NS=3;DP=13;AA=T;STR_1=Test4;STR_VARIES=0/0;STR_2=FIRST,SECOND;STR_G=Something" in line) 
+            elif line.startswith("20\t1234567"):
+                count_found += 1
+                self.assertTrue("NS=3;DP=9;AA=G;STR_A=False,True;STR_G=Something;STR_1=Test5;STR_2=Aa,Bb;STR_VARIES=0/0,0/1,1/1" in line)
+
+        self.assertEqual(5, count_found)
+        out.close() 
+
 class TestRecord(unittest.TestCase):
 
     def test_num_calls(self):
@@ -241,6 +279,77 @@ class TestRecord(unittest.TestCase):
                 self.assertEqual(0.0/6.0, pi)
             elif var.POS == 1234567:
                 self.assertEqual(None, pi)
+
+    def test_info(self):
+        reader = vcf.Reader(fh('issue-info-4.1.vcf'))
+        for record in reader:
+            info = record.INFO
+            if record.POS == 14370:
+                self.assertEqual("Test1", info["STR_1"])
+                self.assertEqual(["FIRST", "SECOND"], info["STR_2"])
+                self.assertEqual(["True"], info["STR_A"])
+                self.assertEqual(["Something"], info["STR_G"])
+                self.assertEqual(["0/0","0/1"], info["STR_VARIES"])
+                self.assertEqual(3, info["NS"])
+                self.assertEqual(14, info["DP"])
+                self.assertEqual([0.5], info["AF"])
+                self.assertNotIn("AA", info)
+                self.assertTrue(info["DB"])
+                self.assertTrue(info["H2"])
+            elif record.POS == 17330:
+                self.assertEqual("Test2", info["STR_1"])
+                self.assertEqual(["Aa", "Bb"], info["STR_2"])
+                self.assertEqual(["A"], record.ALT)
+                self.assertEqual(["False"], info["STR_A"])
+                self.assertEqual(["Something"], info["STR_G"])
+                self.assertEqual(["0/0","0/1", "1/1"], info["STR_VARIES"])
+                self.assertEqual(3, info["NS"])
+                self.assertEqual(11, info["DP"])
+                self.assertEqual([0.017], info["AF"])
+                self.assertNotIn("AA", info)
+                self.assertNotIn("DB", info)
+                self.assertNotIn("H2", info)
+            elif record.POS == 1110696:
+                self.assertEqual("Test3", info["STR_1"])
+                self.assertEqual(["Bb", "Cc"], info["STR_2"])
+                self.assertTrue(isinstance(record.ALT, list))
+                self.assertEqual(2, len(record.ALT))
+                self.assertEqual(["False", "True"], info["STR_A"])
+                self.assertEqual(["Something_else"], info["STR_G"])
+                self.assertNotIn("STR_VARIES", info)
+                self.assertEqual(2, info["NS"])
+                self.assertEqual(10, info["DP"])
+                self.assertEqual([0.333, 0.667], info["AF"])
+                self.assertEqual("T", info["AA"])
+                self.assertTrue(info["DB"])
+                self.assertNotIn("H2", info)
+            elif record.POS == 1230237:
+                self.assertEqual("Test4", info["STR_1"])
+                self.assertEqual(["FIRST", "SECOND"], info["STR_2"])
+                self.assertEqual([None], record.ALT)
+                self.assertNotIn("STR_A", info)
+                self.assertEqual(["Something"], info["STR_G"])
+                self.assertEqual(["0/0"], info["STR_VARIES"])
+                self.assertEqual(3, info["NS"])
+                self.assertEqual(13, info["DP"])
+                self.assertNotIn("AF", info)
+                self.assertEqual("T", info["AA"])
+                self.assertNotIn("DB", info)
+                self.assertNotIn("H2", info)
+            elif record.POS == 1234567:
+                self.assertEqual("Test5", info["STR_1"])
+                self.assertEqual(["Aa", "Bb"], info["STR_2"])
+                self.assertEqual(["False", "True"], info["STR_A"])
+                self.assertEqual(["Something"], info["STR_G"])
+                self.assertEqual(["0/0", "0/1", "1/1"], info["STR_VARIES"])
+                self.assertEqual(3, info["NS"])
+                self.assertEqual(9, info["DP"])
+                self.assertNotIn("AF", info)
+                self.assertEqual("G", info["AA"])
+                self.assertNotIn("DB", info)
+                self.assertNotIn("H2", info)
+            else:
+                self.assertFalse("Unexpected position: " + str(record.POS))
 
 class TestCall(unittest.TestCase):
 

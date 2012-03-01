@@ -68,6 +68,10 @@ class _vcf_metadata_parser(object):
         except ValueError:
             num = None
 
+        if num == 0 and match.group('type') != 'Flag':
+            sys.stderr.write("INFO[%s].Number equals 0 but INFO[%s].Type is not Flag but %s\n" \
+                % (match.group('id'), match.group('id'), match.group('type')))
+
         info = _Info(match.group('id'), num,
                      match.group('type'), match.group('desc'))
 
@@ -447,21 +451,28 @@ class Reader(object):
 
     def _parse_info(self, info_str):
         '''Parse the INFO field of a VCF entry into a dictionary of Python
-        types.
-
+        types. If INFO.Number == 0 and INFO.Type == "Flag" the value will
+        be set to True, if INFO.Number != 1 then a list is returned (i.e. 
+        INFO.Number == "A", "G", or ".") if INFO.Number == 1 and there is only
+        one value the value is returned (not a list), otherwise a list is returned.  
         '''
+        # TODO we might want to make lists for A and G of the correct length
+        # with None filled in if we have missing data (record.ALT can be [None])
+
         if info_str == '.':
-            return {}
+            return collections.OrderedDict() 
             
         entries = info_str.split(';')
-        retdict = {}
+        retdict = collections.OrderedDict() 
 
         for entry in entries:
             entry = entry.split('=')
             ID = entry[0]
             try:
                 entry_type = self.infos[ID].type
+                entry_num = self.infos[ID].num
             except KeyError:
+                entry_num = None
                 try:
                     entry_type = RESERVED_INFO[ID]
                 except KeyError:
@@ -470,23 +481,22 @@ class Reader(object):
                     else:
                         entry_type = 'Flag'
 
-            if entry_type == 'Integer':
-                vals = entry[1].split(',')
-                val = self._map(int, vals)
-            elif entry_type == 'Float':
-                vals = entry[1].split(',')
-                val = self._map(float, vals)
-            elif entry_type == 'Flag':
+            if entry_num == 0 and entry_type == 'Flag':
                 val = True
-            elif entry_type == 'String':
-                val = entry[1]
+            else:
+                val = entry[1].split(',')
+                if entry_type == 'Integer':
+                    val = self._map(int, val)
+                elif entry_type == 'Float':
+                    val = self._map(float, val)
 
-            try:
-                if self.infos[ID].num == 1:
+                # with check for len(val) == 1 we don't lose 
+                # data even if it is in violation of our spec
+                if entry_num == 1 and len(val) == 1:
                     val = val[0]
-            except KeyError:
-                pass
-
+                # TODO else if entry_num == 1 and len(val) > 1 warning 
+                # TODO other warnings about expected length and data types 
+                    
             retdict[ID] = val
 
         return retdict
@@ -668,7 +678,13 @@ class Writer(object):
     def _format_info(self, info):
         if not info:
             return '.'
-        return ';'.join(["%s=%s" % (x, self._stringify(y)) for x, y in info.items()])
+        info_strs = []
+        for x, y in info.items():
+            if x in self.template.infos and self.template.infos[x].type == 'Flag':
+                info_strs.append(x)
+            else:
+                info_strs.append("%s=%s" % (x, self._stringify(y)))
+        return ';'.join(info_strs)
 
     def _format_sample(self, fmt, sample):
         if sample.data["GT"] is None:
