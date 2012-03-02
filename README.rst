@@ -1,5 +1,8 @@
 A VCFv4.0 parser for Python.
 
+**Development repository for PyVCF is at https://github.com/jamescasbon/PyVCF **
+**This repository assumes Python >= 2.7 (uses collections.OrderedDict)**
+
 The intent of this module is to mimic the ``csv`` module in the Python stdlib,
 as opposed to more flexible serialization formats like JSON or YAML.  ``vcf``
 will attempt to parse the content of each record based on the data types
