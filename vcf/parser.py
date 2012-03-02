@@ -413,7 +413,7 @@ class Reader(object):
         The end user shouldn't have to use this.  She can access the metainfo
         directly with ``self.metadata``.'''
         for attr in ('metadata', 'infos', 'filters', 'formats'):
-            setattr(self, attr, {})
+            setattr(self, attr, collections.OrderedDict())
 
         parser = _vcf_metadata_parser()
 
