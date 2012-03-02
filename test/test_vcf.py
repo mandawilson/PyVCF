@@ -226,6 +226,61 @@ class TestWriter(unittest.TestCase):
         self.assertEqual(5, count_found)
         out.close() 
 
+    def test_filter(self):
+        """Make sure whatever is read in is also written out.""" 
+        reader_in = vcf.Reader(fh('issue-filter-4.1.vcf')) 
+        out = StringIO()
+
+        writer = vcf.Writer(out, reader_in)     
+        in_records = list(reader_in)
+
+        map(writer.write_record, in_records)        
+        out.seek(0)
+        reader_out = vcf.Reader(out)
+
+        out_records = list(reader_out)
+
+        # check records
+        in_filters = []
+        out_filters = []
+        for record in in_records:
+            in_filters.append(record.FILTER)
+
+        for record in out_records:
+            out_filters.append(record.FILTER)
+
+        self.assertEquals(in_filters, out_filters)
+
+        # make sure that the user gets ['q10', 's50']
+        self.assertIn(['q10', 's50'], in_filters)
+        self.assertIn(['q10', 's50'], out_filters)
+
+        # check output
+
+        lines = out.getvalue().split("\n")        
+        self.assertTrue(lines >= 29) 
+
+        count_found = 0 
+        for line in lines:            
+            if line.startswith("20\t14370"):
+                count_found += 1
+                self.assertTrue("29\tPASS\tNS=3" in line)
+            elif line.startswith("20\t17330"):
+                count_found += 1
+                self.assertTrue("3\tq10\tNS=3" in line)
+            elif line.startswith("20\t1110696"):
+                count_found += 1
+                self.assertTrue("67\tPASS\tNS=2" in line)
+            elif line.startswith("20\t1230237"):
+                count_found += 1
+                self.assertTrue("47\tq10;s50\tNS=3" in line) 
+            elif line.startswith("20\t1234567"):
+                count_found += 1
+                self.assertTrue("50\t.\tNS=" in line)
+
+        self.assertEqual(5, count_found)
+        out.close()
+
 class TestRecord(unittest.TestCase):
 
     def test_num_calls(self):
@@ -472,7 +527,6 @@ class TestFilter(unittest.TestCase):
         print buf.getvalue()
         reader = vcf.Reader(buf)
 
-
         # check filter got into output file
         assert 'sq30' in reader.filters
 
@@ -485,7 +539,8 @@ class TestFilter(unittest.TestCase):
                 assert 'sq30' in r.FILTER
                 n += 1
             else:
-                assert 'sq30' not in r.FILTER
+                # "PASS" is changed to None
+                assert not r.FILTER or 'sq30' not in r.FILTER
         assert n == 2
 
 

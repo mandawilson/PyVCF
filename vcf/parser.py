@@ -665,7 +665,7 @@ class Writer(object):
     def write_record(self, record):
         """ write a record to the file """
         ffs = self._map(str, [record.CHROM, record.POS, record.ID, record.REF]) \
-              + [self._format_alt(record.ALT), record.QUAL or '.', record.FILTER or '.',
+              + [self._format_alt(record.ALT), record.QUAL or '.', self._format_filter(record.FILTER),
                  self._format_info(record.INFO), record.FORMAT]
 
         samples = [self._format_sample(record.FORMAT, sample)
@@ -674,6 +674,18 @@ class Writer(object):
 
     def _format_alt(self, alt):
         return ','.join([x or '.' for x in alt])
+
+    def _format_filter(self, filter):
+        if not filter:
+            # when read in PASS was turned to None
+            # which is different from "."
+            # this is risky if the user has added data
+            # and doesn't realize that
+            return "PASS"
+        elif type(filter) == type([]):
+            return ";".join(filter)
+        else:
+            return filter
 
     def _format_info(self, info):
         if not info:
