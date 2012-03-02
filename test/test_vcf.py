@@ -166,6 +166,59 @@ class Test1kg(unittest.TestCase):
         for _ in reader:
             pass
 
+class TestReader(unittest.TestCase):
+
+    def setUp(self):
+        self.reader = vcf.Reader(fh('issue-order-4.1.vcf'))
+        # TODO contig should be a list like filters, formats, etc.
+        # and then this test will change
+        self.ordered_metadata = [('fileformat', 'VCFv4.1'), ('fileDate', '20090805'), \
+            ('source', 'myImputationProgramV3.1'), \
+            ('reference', 'file:///seq/references/1000GenomesPilot-NCBI36.fasta'), \
+            ('contig', '<ID=20,length=62435964,assembly=B36,md5=f126cdf8a6e0c7f379d618ff66beb2da,species="Homo sapiens",taxonomy=x>'), \
+            ('phasing', 'partial'), ("test_metadata", "testing")]
+        self.ordered_infos = ["NS", "DP", "AF", "AA", "DB", "H2"] 
+        self.ordered_filters = ["s50", "q10"]
+        self.ordered_formats = ["GT", "GQ", "DP", "HQ"]
+        self.ordered_samples = ["NA00002", "NA00001", "NA00003"]
+
+    def test_metadata_order(self):
+        """Tests order and content"""
+        self.assertIsNotNone(self.reader) 
+        for expected_pair, actual_key in zip(self.ordered_metadata, self.reader.metadata.keys()):
+            actual_value = self.reader.metadata[actual_key]
+            self.assertEquals(expected_pair[0], actual_key)
+            self.assertEquals(expected_pair[1], actual_value)
+
+    def test_infos_order(self):
+        """Tests order only TODO content"""
+        self.assertIsNotNone(self.reader) 
+        self.assertEquals(self.ordered_infos, self.reader.infos.keys())
+
+    def test_filters_order(self):
+        """Tests order only TODO content"""
+        self.assertIsNotNone(self.reader) 
+        self.assertEquals(self.ordered_filters, self.reader.filters.keys())
+
+    def test_formats_order(self):
+        """Tests order only TODO content"""
+        self.assertIsNotNone(self.reader) 
+        self.assertEquals(self.ordered_formats, self.reader.formats.keys())
+
+    def test_samples_order(self):
+        """Tests order only TODO content"""
+        self.assertIsNotNone(self.reader) 
+        self.assertEquals(self.ordered_samples, self.reader.samples)
+
+    def test_pass_none(self):
+        """Tests that filter of PASS is None.  If 
+            this changes, the Writer needs to change."""
+        self.assertIsNotNone(self.reader) 
+        filters = []
+        for record in self.reader:
+            filters.append(record.FILTER)
+        # PASS is turned into None
+        self.assertEqual(4, filters.count(None))
 
 class TestWriter(unittest.TestCase):
 
@@ -621,6 +674,7 @@ class TestUtils(unittest.TestCase):
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestGatkOutput))
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestFreebayesOutput))
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSamtoolsOutput))
+suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestReader))
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestWriter))
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestTabix))
 suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestOpenMethods))
