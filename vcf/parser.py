@@ -52,7 +52,7 @@ class _vcf_metadata_parser(object):
             Type=(?P<type>.+),
             Description="(?P<desc>.*)"
             >''', re.VERBOSE)
-        self.meta_pattern = re.compile(r'''##(?P<key>.+)=(?P<val>.+)''')
+        self.meta_pattern = re.compile(r'''##(?P<key>.+?)=(?P<val>.+)''')
 
     def read_info(self, info_string):
         '''Read a meta-information INFO line.'''
