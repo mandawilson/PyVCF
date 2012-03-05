@@ -433,6 +433,66 @@ class TestWriter(unittest.TestCase):
         sys.stderr.close()
         sys.stderr = old_stderr
 
+    def test_new_metadata(self):
+        """Tests that we can add new metadata, info,
+        format, and filter fields, that they are included
+        in the output header and the order is preserved."""
+        reader = vcf.Reader(fh('gatk.vcf'))
+
+        unmodified_number_of_filters = len(reader.filters)
+        unmodified_out = StringIO()
+        unmodified_writer = vcf.Writer(unmodified_out, reader)
+        unmodified_out_str = unmodified_out.getvalue()
+
+        print "********* unmod out str *************"
+        print unmodified_out_str
+        print "**********************"
+
+        # modify the information our reader has 
+        reader.filters["NEW_FILTER"] = vcf.parser._Filter("NEW_FILTER", "Testing")
+        print "**********************"
+        print reader.filters
+        print "**********************"
+
+        reader.formats["NEW_FORMAT"] = vcf.parser._Format("NEW_FORMAT", 1, "String", "Testing")
+        reader.infos["NEW_INFO"] = vcf.parser._Info("NEW_INFO", 1, "String", "Testing")
+        reader.metadata["NEW_META"] = "Testing"
+
+        modified_number_of_filters = len(reader.filters)
+
+        # note this is a good test because the original file had no filters,
+        # and now we are adding one -- first time around it didn't get written
+        # make sure this test doesn't get changed by anyone
+        self.assertEquals(0, unmodified_number_of_filters)
+        self.assertEquals(1, modified_number_of_filters)
+
+        expected_output = "replace with real thing, this is here to make sure we read it"
+        with open(os.path.join(os.path.dirname(__file__), "gatk_modified.vcf"), 'r') as f:
+            lines = f.readlines()
+            self.assertTrue(len(lines) >= 160)
+            expected_output = "".join(lines)
+
+        modified_out = StringIO()
+        modified_writer = vcf.Writer(modified_out, reader)
+
+        modified_out_str = modified_out.getvalue()
+
+        print "******** mod out str **************"
+        print modified_out_str
+        print "**********************"
+
+        # header lines does not include:
+        # #CHROM POS ID REF ALT QUAL FILTER INFO FORMAT"
+        self.assertTrue(unmodified_out_str.startswith("".join(reader._header_lines)))
+        self.assertNotEquals(unmodified_out_str, modified_out_str)
+
+
+        # expected output has data too
+        self.assertTrue(expected_output.startswith(modified_out_str))
+
+        # TODO also test data
+        # TODO this test is far too long!!!
+
 class TestRecord(unittest.TestCase):
 
     def test_num_calls(self):
