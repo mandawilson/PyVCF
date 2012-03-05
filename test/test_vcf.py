@@ -241,6 +241,20 @@ class TestWriter(unittest.TestCase):
         for l, r in zip(records, reader2):
             self.assertEquals(l.samples, r.samples)
 
+    def test_header(self):
+        in_file = fh('issue-order-4.1.vcf')
+        reader = vcf.Reader(in_file)
+        out = StringIO()
+        writer = vcf.Writer(out, reader)
+        # write records as well 
+        map(writer.write_record, list(reader))
+        out_str = out.getvalue()
+        # header lines does not include:
+        # #CHROM POS ID REF ALT QUAL FILTER INFO FORMAT"
+        print "LOG: header_lines=" + "".join(reader._header_lines)
+        print "LOG: out_str=" + out_str
+        self.assertTrue(out_str.startswith("".join(reader._header_lines)))
+
     def test_info(self):
         """Make sure whatever was in the input file 
             is preserved in the output file."""

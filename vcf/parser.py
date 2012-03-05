@@ -391,6 +391,9 @@ class Reader(object):
 
         #: metadata fields from header
         self.metadata = None
+        #: remember original order of all header ##KEYS 
+        #  use the OrderedDict keys for an ordered set
+        self.metadata_id_order = collections.OrderedDict() 
         #: INFO fields from header
         self.infos = None
         #: FILTER fields from header
@@ -425,18 +428,22 @@ class Reader(object):
             if line.startswith('##INFO'):
                 key, val = parser.read_info(line)
                 self.infos[key] = val
+                self.metadata_id_order["INFO"] = None
 
             elif line.startswith('##FILTER'):
                 key, val = parser.read_filter(line)
                 self.filters[key] = val
+                self.metadata_id_order["FILTER"] = None
 
             elif line.startswith('##FORMAT'):
                 key, val = parser.read_format(line)
                 self.formats[key] = val
+                self.metadata_id_order["FORMAT"] = None
 
             else:
                 key, val = parser.read_meta(line.strip())
                 self.metadata[key] = val
+                self.metadata_id_order[key] = None
 
             line = self.reader.next()
 
@@ -647,14 +654,39 @@ class Writer(object):
         self.writer = csv.writer(stream, delimiter="\t")
         self.template = template
 
-        for line in template.metadata.items():
-            stream.write('##%s=%s\n' % line)
-        for line in template.infos.values():
-            stream.write('##INFO=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % tuple(self._map(str, line)))
-        for line in template.formats.values():
-            stream.write('##FORMAT=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % tuple(self._map(str, line)))
-        for line in template.filters.values():
-            stream.write('##FILTER=<ID=%s,Description="%s">\n' % tuple(self._map(str, line)))
+        # remember that after a file has been read
+        # the objects can be modifed or added to
+        # so add whatever might be missing
+        # and if it was already in metadata_id_order 
+        # position will be unchanged
+        # TODO define INFO, FILTER, FORMAT somewhere
+        for header_key in ["INFO", "FILTER", "FORMAT"] + template.metadata.keys():
+            template.metadata_id_order[header_key] = None
+
+        # we use the keys to preserve the overall order 
+        # that was in original input file
+        # e.g. metadata, INFO, FILTER, FORMAT, more metadata...
+        for key in template.metadata_id_order.keys():
+          if key == "INFO":
+            # output all infos at once (old and new)
+            for line in template.infos.values():
+              stream.write('##INFO=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % tuple(self._map(str, line)))
+          elif key == "FORMAT":
+            # output all formats at once (old and new)
+            for line in template.formats.values():
+              stream.write('##FORMAT=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % tuple(self._map(str, line)))
+          elif key == "FILTER":
+            # output all filters at once (old and new)
+            for line in template.filters.values():
+              stream.write('##FILTER=<ID=%s,Description="%s">\n' % tuple(self._map(str, line)))
+          else:
+            # only output metadata with this key
+            values = template.metadata[key]
+            if type(values) == type([]):
+              for line in template.metadata[key]:
+                stream.write('##%s=%s\n' % (key, line))
+            else:
+              stream.write('##%s=%s\n' % (key, values))
 
         self._write_header()
 
