@@ -61,12 +61,18 @@ class _vcf_metadata_parser(object):
             raise SyntaxError(
                 "One of the INFO lines is malformed: %s" % info_string)
 
+        num_str = match.group('number')
         try:
-            num = int(match.group('number'))
-            if num < 0:
+            if not num_str:
                 num = None
+            else:
+                num = int(num_str)
+                if num < 0:
+                    sys.stderr.write("INFO[%s].Number = %s which is invalid.\n" \
+                        % (match.group('id'), num_str))
         except ValueError:
-            num = None
+            # TODO check and warn about other invalid values?
+            num = num_str
 
         if num == 0 and match.group('type') != 'Flag':
             sys.stderr.write("INFO[%s].Number equals 0 but INFO[%s].Type is not Flag but %s\n" \
@@ -95,12 +101,18 @@ class _vcf_metadata_parser(object):
             raise SyntaxError(
                 "One of the FORMAT lines is malformed: %s" % format_string)
 
+        num_str = match.group('number')
         try:
-            num = int(match.group('number'))
-            if num < 0:
+            if not num_str:
                 num = None
+            else:
+                num = int(num_str)
+                if num <= 0:
+                    sys.stderr.write("FORMAT[%s].Number = %s which is invalid.\n" \
+                        % (match.group('id'), num_str))
         except ValueError:
-            num = None
+            # TODO check and warn about other invalid values?
+            num = num_str
 
         form = _Format(match.group('id'), num,
                        match.group('type'), match.group('desc'))
