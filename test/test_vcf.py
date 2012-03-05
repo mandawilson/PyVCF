@@ -3,6 +3,7 @@ import doctest
 import os
 import commands
 from StringIO import StringIO
+import sys
 
 import vcf
 from vcf import utils
@@ -219,6 +220,39 @@ class TestReader(unittest.TestCase):
             filters.append(record.FILTER)
         # PASS is turned into None
         self.assertEqual(4, filters.count(None))
+    
+    def test_info_number(self):
+        """Tests INFO.Number is parsed and stored correctly."""   
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+        reader = vcf.Reader(fh('issue-info-4.1.vcf')) 
+        self.assertTrue("INFO[INVALID].Number = -1 which is invalid" in sys.stderr.getvalue())
+        sys.stderr.close()
+        sys.stderr = old_stderr
+        self.assertEquals(1, reader.infos["STR_1"].num) 
+        self.assertEquals(2, reader.infos["STR_2"].num) 
+        self.assertEquals("A", reader.infos["STR_A"].num) 
+        self.assertEquals("G", reader.infos["STR_G"].num) 
+        self.assertEquals(".", reader.infos["STR_VARIES"].num) 
+        self.assertEquals(0, reader.infos["DB"].num) 
+        self.assertEquals(-1, reader.infos["INVALID"].num) 
+
+    def test_format_number(self):
+        """Tests FORMAT.Number is parsed and stored correctly."""
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+        reader = vcf.Reader(fh('issue-info-4.1.vcf'))
+        self.assertTrue("FORMAT[INVALID_ZERO].Number = 0 which is invalid" in sys.stderr.getvalue())
+        self.assertTrue("FORMAT[INVALID_NEG].Number = -1 which is invalid" in sys.stderr.getvalue())
+        sys.stderr.close()
+        sys.stderr = old_stderr
+        self.assertEquals(1, reader.formats["GT"].num)
+        self.assertEquals(2, reader.formats["HQ"].num)
+        self.assertEquals("A", reader.formats["A"].num)
+        self.assertEquals("G", reader.formats["G"].num)
+        self.assertEquals(".", reader.formats["U"].num)
+        self.assertEquals(0, reader.formats["INVALID_ZERO"].num)
+        self.assertEquals(-1, reader.formats["INVALID_NEG"].num)
 
 class TestWriter(unittest.TestCase):
 
@@ -251,13 +285,38 @@ class TestWriter(unittest.TestCase):
         out_str = out.getvalue()
         # header lines does not include:
         # #CHROM POS ID REF ALT QUAL FILTER INFO FORMAT"
-        print "LOG: header_lines=" + "".join(reader._header_lines)
-        print "LOG: out_str=" + out_str
         self.assertTrue(out_str.startswith("".join(reader._header_lines)))
 
-    def test_info(self):
+    def test_header_info(self):
+        # suppress errors 
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+
+        reader_in = vcf.Reader(fh('issue-info-4.1.vcf'))
+        out = StringIO()
+        writer = vcf.Writer(out, reader_in)
+        out.seek(0)
+        reader_out = vcf.Reader(out)
+
+        set_numbers = set()
+        for in_key, out_key in zip(sorted(reader_in.infos.keys()), sorted(reader_out.infos.keys())):
+            self.assertEquals(in_key, out_key)
+            self.assertEquals(reader_in.infos[in_key].num, reader_out.infos[out_key].num)
+            set_numbers.add(reader_out.infos[out_key].num)
+
+        self.assertTrue(set_numbers >= set(["A", "G", 1, 2, ".", 0, -1]))
+
+        # we suppressed errors above
+        sys.stderr.close()
+        sys.stderr = old_stderr
+
+    def test_record_info(self):
         """Make sure whatever was in the input file 
             is preserved in the output file."""
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+        # this file has errors issued we don't want 
+        # runners of the unit tests to be concerned with
         reader_in = vcf.Reader(fh('issue-info-4.1.vcf'))
         out = StringIO()
 
@@ -268,6 +327,9 @@ class TestWriter(unittest.TestCase):
         map(writer.write_record, in_records)
         out.seek(0)
         reader_out = vcf.Reader(out)
+        # now reset stderr
+        sys.stderr.close()
+        sys.stderr = old_stderr
 
         lines = out.getvalue().split("\n")
         self.assertTrue(lines >= 29)
@@ -293,7 +355,7 @@ class TestWriter(unittest.TestCase):
         self.assertEqual(5, count_found)
         out.close() 
 
-    def test_filter(self):
+    def test_record_filter(self):
         """Make sure whatever is read in is also written out.""" 
         reader_in = vcf.Reader(fh('issue-filter-4.1.vcf')) 
         out = StringIO()
@@ -347,6 +409,29 @@ class TestWriter(unittest.TestCase):
 
         self.assertEqual(5, count_found)
         out.close()
+
+    def test_header_format(self):
+        # suppress errors 
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+
+        reader_in = vcf.Reader(fh('issue-info-4.1.vcf'))
+        out = StringIO()
+        writer = vcf.Writer(out, reader_in)
+        out.seek(0)
+        reader_out = vcf.Reader(out)
+
+        set_numbers = set()
+        for in_key, out_key in zip(reader_in.formats.keys(), reader_out.formats.keys()):
+            self.assertEquals(in_key, out_key)
+            self.assertEquals(reader_in.formats[in_key].num, reader_out.formats[out_key].num)
+            set_numbers.add(reader_out.formats[out_key].num)
+
+        self.assertTrue(set_numbers >= set(["A", "G", 1, 2, ".", 0, -1]))
+
+        # we suppressed errors above
+        sys.stderr.close()
+        sys.stderr = old_stderr
 
 class TestRecord(unittest.TestCase):
 
@@ -403,7 +488,13 @@ class TestRecord(unittest.TestCase):
                 self.assertEqual(None, pi)
 
     def test_info(self):
+        old_stderr = sys.stderr
+        sys.stderr = StringIO()
+        # this file has errors issued we don't want 
+        # runners of the unit tests to be concerned with
         reader = vcf.Reader(fh('issue-info-4.1.vcf'))
+        sys.stderr.close()
+        sys.stderr = old_stderr
         for record in reader:
             info = record.INFO
             if record.POS == 14370:
