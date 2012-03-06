@@ -272,6 +272,28 @@ class TestReader(unittest.TestCase):
 
 class TestWriter(unittest.TestCase):
 
+    def test_diff(self):
+        # if we read in a file and then write
+        # what we get, we want them to be the same
+        # gatk_expected.vcf is a copy of gatk.vcf
+        # except with numbers like 0.00 converted to 0.0
+        # did search for [0-9]\.[0-9]0[^0-9]
+        # and [0-9]\.[0-9][0-9]0[^0-9]
+        in_file = fh('gatk_expected.vcf')
+        reader = vcf.Reader(in_file)
+        out = StringIO()
+        writer = vcf.Writer(out, reader)
+        records = list(reader)
+        map(writer.write_record, records)
+        # remove blank lines
+        out_lines = [line.rstrip() for line in out.getvalue().split("\n") if line]
+        out.close()
+        in_file.seek(0)
+        in_lines = [line.rstrip() for line in in_file]
+        in_file.close()
+        self.maxDiff = None
+        self.assertEquals(in_lines, out_lines)
+
     def testWrite(self):
 
         reader = vcf.Reader(fh('gatk.vcf'))
