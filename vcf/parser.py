@@ -454,7 +454,13 @@ class Reader(object):
 
             else:
                 key, val = parser.read_meta(line.strip())
-                self.metadata[key] = val
+                # don't make a list of values unless we have to
+                if key not in self.metadata:
+                    self.metadata[key] = val
+                elif type(self.metadata[key]) != type([]):
+                    self.metadata[key] = [self.metadata[key], val]
+                else:
+                    self.metadata[key].append(val)
                 self.metadata_id_order[key] = None
 
             line = self.reader.next()
