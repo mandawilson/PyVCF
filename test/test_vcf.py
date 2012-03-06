@@ -202,6 +202,22 @@ class TestReader(unittest.TestCase):
         self.assertEquals(0, reader.formats["INVALID_ZERO"].num)
         self.assertEquals(-1, reader.formats["INVALID_NEG"].num)
 
+    def test_multiple_metadata(self):
+        """Tests that if there are multiple header lines like
+            ##KEY, we have all the information. An example is
+            ##contig, which will eventually not be in metadata, 
+            but is for now."""
+        reader = vcf.Reader(fh('example-4.1.vcf'))
+        print "reader.metadata=", reader.metadata
+        self.assertEquals(type([]), type(reader.metadata["KEY"]))
+        self.assertEquals(type("string"), type(reader.metadata["fileDate"]))
+        self.assertEquals(3, len(reader.metadata["KEY"]))
+        self.assertEquals(['<ID=X,Description="Testing multiple keys in metadata (like multiple contigs)">', \
+            '<ID=Y,Description="Testing multiple keys in metadata (like multiple contigs)">', \
+            '<ID=Z,Description="Testing multiple keys in metadata (like multiple contigs)">'], reader.metadata["KEY"])
+        # lists if more than one, string otherwise
+        self.assertEquals("20090805", reader.metadata["fileDate"])
+
 class TestWriter(unittest.TestCase):
 
     def testWrite(self):
@@ -245,6 +261,20 @@ class TestWriter(unittest.TestCase):
         # we suppressed errors above
         sys.stderr.close()
         sys.stderr = old_stderr
+
+    def test_multiple_metadata(self):
+        """Tests that if there are multiple header lines like
+            ##KEY, we have all the information. An example is
+            ##contig, which will eventually not be in metadata, 
+            but is for now."""
+        reader_in = vcf.Reader(fh('example-4.1.vcf'))
+        out = StringIO()
+        writer = vcf.Writer(out, reader_in)
+        out_str = out.getvalue()
+        out.close()
+        self.assertTrue('##KEY=<ID=X,Description="Testing multiple keys in metadata (like multiple contigs)">' in out_str)
+        self.assertTrue('##KEY=<ID=Y,Description="Testing multiple keys in metadata (like multiple contigs)">' in out_str)
+        self.assertTrue('##KEY=<ID=Z,Description="Testing multiple keys in metadata (like multiple contigs)">' in out_str)
 
     def test_record_info(self):
         """Make sure whatever was in the input file 

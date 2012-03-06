@@ -52,7 +52,7 @@ class _vcf_metadata_parser(object):
             Type=(?P<type>.+),
             Description="(?P<desc>.*)"
             >''', re.VERBOSE)
-        self.meta_pattern = re.compile(r'''##(?P<key>.+)=(?P<val>.+)''')
+        self.meta_pattern = re.compile(r'''##(?P<key>.+?)=(?P<val>.+)''')
 
     def read_info(self, info_string):
         '''Read a meta-information INFO line.'''
@@ -448,7 +448,13 @@ class Reader(object):
 
             else:
                 key, val = parser.read_meta(line.strip())
-                self.metadata[key] = val
+                # don't make a list of values unless we have to
+                if key not in self.metadata:
+                    self.metadata[key] = val
+                elif type(self.metadata[key]) != type([]):
+                    self.metadata[key] = [self.metadata[key], val]
+                else:
+                    self.metadata[key].append(val)
 
             line = self.reader.next()
 
@@ -659,8 +665,12 @@ class Writer(object):
         self.writer = csv.writer(stream, delimiter="\t")
         self.template = template
 
-        for line in template.metadata.items():
-            stream.write('##%s=%s\n' % line)
+        for key, values in template.metadata.items():
+            if type(values) == type([]):
+                for value in values:
+                    stream.write('##%s=%s\n' % (key, value))
+            else:
+                stream.write('##%s=%s\n' % (key, values))
         for line in template.infos.values():
             stream.write('##INFO=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % tuple(self._map(str, line)))
         for line in template.formats.values():
