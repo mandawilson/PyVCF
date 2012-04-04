@@ -579,6 +579,96 @@ class TestRecord(unittest.TestCase):
                 self.assertEqual(0.0/6.0, pi)
             elif var.POS == 1234567:
                 self.assertEqual(None, pi)
+                
+    def test_is_snp(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            is_snp = var.is_snp
+            if var.POS == 14370:
+                self.assertEqual(True, is_snp)
+            if var.POS == 17330:
+                self.assertEqual(True, is_snp)
+            if var.POS == 1110696:
+                self.assertEqual(True, is_snp)
+            if var.POS == 1230237:
+                self.assertEqual(False, is_snp)
+            elif var.POS == 1234567:
+                self.assertEqual(False, is_snp)
+
+    def test_is_indel(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            is_indel = var.is_indel
+            if var.POS == 14370:
+                self.assertEqual(False, is_indel)
+            if var.POS == 17330:
+                self.assertEqual(False, is_indel)
+            if var.POS == 1110696:
+                self.assertEqual(False, is_indel)
+            if var.POS == 1230237:
+                self.assertEqual(True, is_indel)
+            elif var.POS == 1234567:
+                self.assertEqual(True, is_indel)
+
+    def test_is_transition(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            is_trans = var.is_transition
+            if var.POS == 14370:
+                self.assertEqual(True, is_trans)
+            if var.POS == 17330:
+                self.assertEqual(False, is_trans)
+            if var.POS == 1110696:
+                self.assertEqual(False, is_trans)
+            if var.POS == 1230237:
+                self.assertEqual(False, is_trans)
+            elif var.POS == 1234567:
+                self.assertEqual(False, is_trans)
+
+    def test_is_deletion(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            is_del = var.is_deletion
+            if var.POS == 14370:
+                self.assertEqual(False, is_del)
+            if var.POS == 17330:
+                self.assertEqual(False, is_del)
+            if var.POS == 1110696:
+                self.assertEqual(False, is_del)
+            if var.POS == 1230237:
+                self.assertEqual(True, is_del)
+            elif var.POS == 1234567:
+                self.assertEqual(False, is_del)
+
+    def test_var_type(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            type = var.var_type
+            if var.POS == 14370:
+                self.assertEqual("snp", type)
+            if var.POS == 17330:
+                self.assertEqual("snp", type)
+            if var.POS == 1110696:
+                self.assertEqual("snp", type)
+            if var.POS == 1230237:
+                self.assertEqual("indel", type)
+            elif var.POS == 1234567:
+                self.assertEqual("indel", type)
+
+    def test_var_subtype(self):
+        reader = vcf.Reader(fh('example-4.0.vcf'))
+        for var in reader:
+            type = var.var_subtype
+            if var.POS == 14370:
+                self.assertEqual("ts", type)
+            if var.POS == 17330:
+                self.assertEqual("tv", type)
+            if var.POS == 1110696:
+                self.assertEqual("unknown", type)
+            if var.POS == 1230237:
+                self.assertEqual("del", type)
+            elif var.POS == 1234567:
+                self.assertEqual("unknown", type)
 
     def test_info(self):
         old_stderr = sys.stderr

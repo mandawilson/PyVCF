@@ -1,5 +1,4 @@
 from setuptools import setup
-import sys
 
 requires = []
 
@@ -9,7 +8,19 @@ try:
 except ImportError:
     requires.append('argparse')
 
-import vcf
+# get the version without an import
+VERSION = "Undefined"
+DOC = ""
+inside_doc = False
+for line in open('vcf/__init__.py'):
+    if "'''" in line:
+        inside_doc = not inside_doc
+    if inside_doc:
+        DOC += line.replace("'''", "")
+
+    if (line.startswith('VERSION')):
+        exec(line.strip())
+
 
 setup(
     name='PyVCF',
@@ -18,7 +29,7 @@ setup(
     author='James Casbon and @jdoughertyii',
     author_email='casbon@gmail.com',
     description='Variant Call Format (VCF) parser for python',
-    long_description=vcf.__doc__,
+    long_description=DOC,
     test_suite='test.test_vcf.suite',
     requires=requires,
     entry_points = {
@@ -28,7 +39,7 @@ setup(
         ]
     },
     url='https://github.com/jamescasbon/PyVCF',
-    version=vcf.VERSION,
+    version=VERSION,
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

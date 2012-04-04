@@ -8,11 +8,35 @@ Issues should be reported at the github issue tracker.
 Changes
 =======
 
-Pending
--------
+0.4.3 Release
+-------------
+
+* Single floats in Reader._sample_parser not being converted to float #35
+* Handle String INFO values when Number=1 in header #34
+
+0.4.2 Release
+-------------
+
+* Installation problems
+
+0.4.1 Release
+-------------
+
+* Installation problems
+
+0.4.0 Release
+-------------
 
 * Package structure 
 * add ``vcf.utils`` module with ``walk_together`` method
+* samtools tests 
+* support Freebayes' non standard '.' for no call
+* fix vcf_melt  
+* support monomorphic sites, add ``is_monomorphic`` method, handle null QUALs
+* filter support for files with monomorphic calls 
+* Values declared as single are no-longer returned in lists
+* several performance improvements 
+
 
 0.3.0 Release
 -------------

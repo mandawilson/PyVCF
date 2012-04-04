@@ -2,6 +2,8 @@ A VCFv4.0 parser for Python.
 
 **Development repository for PyVCF is at https://github.com/jamescasbon/PyVCF **
 **This repository assumes Python >= 2.7 (uses collections.OrderedDict)**
+=======
+Online version of PyVCF documentation is available at http://pyvcf.rtfd.org/
 
 The intent of this module is to mimic the ``csv`` module in the Python stdlib,
 as opposed to more flexible serialization formats like JSON or YAML.  ``vcf``
@@ -15,7 +17,7 @@ There main interface is the class: ``Reader``.  It takes a file-like
 object and acts as a reader::
 
     >>> import vcf
-    >>> vcf_reader = vcf.Reader(open('test/example.vcf', 'rb'))
+    >>> vcf_reader = vcf.Reader(open('test/example-4.0.vcf', 'rb'))
     >>> for record in vcf_reader:
     ...     print record
     Record(CHROM=20, POS=14370, REF=G, ALT=['A'])
@@ -50,7 +52,7 @@ one-entry Python lists (see, e.g., ``Record.ALT``).  Semicolon-delimited lists
 of key=value pairs are converted to Python dictionaries, with flags being given
 a ``True`` value. Integers and floats are handled exactly as you'd expect::
 
-    >>> vcf_reader = vcf.Reader(open('test/example.vcf', 'rb'))
+    >>> vcf_reader = vcf.Reader(open('test/example-4.0.vcf', 'rb'))
     >>> record = vcf_reader.next()
     >>> print record.POS
     14370
@@ -69,8 +71,13 @@ examine properties of interest::
     >>> print record.nucl_diversity, record.aaf
     0.6 0.5
     >>> print record.get_hets()
-    [Call(sample=NA00002, GT=1|0, GQ=[48])]
-
+    [Call(sample=NA00002, GT=1|0, GQ=48)]
+    >>> print record.is_snp, record.is_indel, record.is_transition, record.is_deletion
+    True False True False
+    >>> print record.var_type, record.var_subtype
+    snp ts
+    >>> print record.is_monomorphic
+    False
 
 ``record.FORMAT`` will be a string specifying the format of the genotype
 fields.  In case the FORMAT column does not exist, ``record.FORMAT`` is
@@ -97,7 +104,11 @@ call data in ``data``::
      >>> print call.sample
      NA00001
      >>> print call.data
-     {'GT': '0|0', 'HQ': [58, 50], 'DP': [3], 'GQ': [49]}
+     {'GT': '0|0', 'HQ': [58, 50], 'DP': 3, 'GQ': 49}
+
+Please note that as of release 0.4.0, attributes known to have single values (such as
+``DP`` and ``GQ`` above) are returned as values.  Other attributes are returned
+as lists (such as ``HQ`` above).
 
 There are also a number of methods::
 
