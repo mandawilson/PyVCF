@@ -795,7 +795,7 @@ class Writer(object):
         if self.template.samples:
             fields += self.template.samples
         elif not self.template.formats:
-            # no samples and no format, don't add format column
+            # no samples and no format in header, don't add format column
             fields.remove("FORMAT")
         self.writer.writerow(fields)
 
@@ -805,9 +805,11 @@ class Writer(object):
               + [self._format_alt(record.ALT), record.QUAL or '.', self._format_filter(record.FILTER),
                  self._format_info(record.INFO)]
 
+        # if format in header print even if no samples
+        if record.samples or self.template.formats: 
+            fields += [record.FORMAT]
+
         if record.samples: 
-            if record.FORMAT:
-                fields += [record.FORMAT]
             samples = [self._format_sample(record.FORMAT, sample)
                 for sample in record.samples]
             fields += samples
