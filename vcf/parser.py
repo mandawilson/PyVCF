@@ -748,7 +748,7 @@ class Reader(object):
 class Writer(object):
     """ VCF Writer """
 
-    fixed_fields = "#CHROM POS ID REF ALT QUAL FILTER INFO FORMAT".split()
+    fixed_fields = "#CHROM POS ID REF ALT QUAL FILTER INFO".split()
 
     def __init__(self, stream, template):
         self.writer = csv.writer(stream, delimiter="\t")
@@ -793,10 +793,10 @@ class Writer(object):
     def _write_header(self):
         fields = list(self.fixed_fields) # copy fixed_fields
         if self.template.samples:
+            # VCF spec: if genotype data is present in the file, 
+            # [the 8 fixed, mandatory columns] are followed by a FORMAT column header
+            fields += ["FORMAT"]
             fields += self.template.samples
-        elif not self.template.formats:
-            # no samples and no format in header, don't add format column
-            fields.remove("FORMAT")
         self.writer.writerow(fields)
 
     def write_record(self, record):
@@ -805,14 +805,12 @@ class Writer(object):
               + [self._format_alt(record.ALT), record.QUAL or '.', self._format_filter(record.FILTER),
                  self._format_info(record.INFO)]
 
-        # if format in header print even if no samples
-        if record.samples or self.template.formats: 
-            fields += [record.FORMAT]
-
         if record.samples: 
-            samples = [self._format_sample(record.FORMAT, sample)
+            # if samples aren't defined in header for some reason 
+            # the header will not have FORMAT column 
+            fields += [record.FORMAT]
+            fields += [self._format_sample(record.FORMAT, sample)
                 for sample in record.samples]
-            fields += samples
 
         self.writer.writerow(fields)
 
