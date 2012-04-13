@@ -182,18 +182,11 @@ class _Call(object):
             # grab the numeric alleles of the gt string; tokenize by phasing
             (a1, a2) = self.gt_nums.split("/") \
                 if not self.phased else self.gt_nums.split("|")
-            # infer genotype type from allele numbers
-            if (int(a1) == 0) and (int(a2) == 0): return 0
-            elif (int(a1) == 0) and (int(a2) >= 1): return 1
-            elif (int(a2) == 0) and (int(a1) >= 1): return 1
-            elif (int(a1) >= 1) and (int(a2) >= 1):
-                # same alt, so hom_alt
-                if a1 == a2: return 2
-                # diff alts, so het
-                else: return 1
-            else: return -1
-        else:
-            return None
+            if a1 == a2: 
+                if a1 == "0": return 0
+                else: return 2
+            else: return 1
+        else: return None
 
     @property
     def phased(self):
