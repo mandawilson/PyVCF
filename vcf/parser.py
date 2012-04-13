@@ -791,18 +791,28 @@ class Writer(object):
         self._write_header()
 
     def _write_header(self):
-        # TODO: write INFO, etc
-        self.writer.writerow(self.fixed_fields + self.template.samples)
+        fields = list(self.fixed_fields) # copy fixed_fields
+        if self.template.samples:
+            fields += self.template.samples
+        elif not self.template.formats:
+            # no samples and no format, don't add format column
+            fields.remove("FORMAT")
+        self.writer.writerow(fields)
 
     def write_record(self, record):
         """ write a record to the file """
-        ffs = self._map(str, [record.CHROM, record.POS, record.ID, record.REF]) \
+        fields = self._map(str, [record.CHROM, record.POS, record.ID, record.REF]) \
               + [self._format_alt(record.ALT), record.QUAL or '.', self._format_filter(record.FILTER),
-                 self._format_info(record.INFO), record.FORMAT]
+                 self._format_info(record.INFO)]
 
-        samples = [self._format_sample(record.FORMAT, sample)
-            for sample in record.samples]
-        self.writer.writerow(ffs + samples)
+        if record.samples: 
+            if record.FORMAT:
+                fields += [record.FORMAT]
+            samples = [self._format_sample(record.FORMAT, sample)
+                for sample in record.samples]
+            fields += samples
+
+        self.writer.writerow(fields)
 
     def _format_alt(self, alt):
         return ','.join([x or '.' for x in alt])

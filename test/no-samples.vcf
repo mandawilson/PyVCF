@@ -1,0 +1,13 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=NC,Description="Inconsistent Genotype Submission For At Least One Sample">
+##INFO=<ID=ASP,Number=0,Type=Flag,Description="Is Assembly specific. This is set if the snp only maps to one assembly">
+##dbSNP_BUILD_ID=132
+##fileDate=20110320
+##phasing=partial
+##reference=GRCh37
+##source=dbSNP
+##variationPropertyDocumentationUrl=ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	
+chr1	10433	rs56289060	A	AC	.	PASS	ASP
+chr1	10439	rs112766696	AC	A	.	PASS	ASP
+chr1	10519	rs62636508	G	C	.	PASS	ASP

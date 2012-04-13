@@ -294,6 +294,22 @@ class TestWriter(unittest.TestCase):
         self.maxDiff = None
         self.assertEquals(in_lines, out_lines)
 
+    def test_no_samples(self):
+        in_file = fh('no-samples.vcf')
+        reader = vcf.Reader(in_file)
+        out = StringIO()
+        writer = vcf.Writer(out, reader)
+        records = list(reader)
+        map(writer.write_record, records)
+        # remove blank lines
+        out_lines = [line.rstrip() for line in out.getvalue().split("\n") if line]
+        out.close()
+        in_file.seek(0)
+        in_lines = [line.rstrip() for line in in_file]
+        in_file.close()
+        self.maxDiff = None
+        self.assertEquals(in_lines, out_lines)
+
     def testWrite(self):
 
         reader = vcf.Reader(fh('gatk.vcf'))
