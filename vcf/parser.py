@@ -182,7 +182,7 @@ class _Call(object):
             # grab the numeric alleles of the gt string; tokenize by phasing
             (a1, a2) = self.gt_nums.split("/") \
                 if not self.phased else self.gt_nums.split("|")
-            if a1 == a2: 
+            if a1 == a2:
                 if a1 == "0": return 0
                 else: return 2
             else: return 1
@@ -547,7 +547,7 @@ class Reader(object):
 
             line = self.reader.next()
 
-        fields = line.split()
+        fields = line.rstrip().split('\t')
         self.samples = fields[9:]
         self._sample_indexes = dict([(x,i) for (i,x) in enumerate(self.samples)])
 
