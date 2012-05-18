@@ -686,6 +686,18 @@ class TestRecord(unittest.TestCase):
             elif var.POS == 1234567:
                 self.assertEqual("unknown", type)
 
+    def test_undefined_info_fields(self):
+        reader = vcf.Reader(fh('pgm_tools.vcf'))
+        for record in reader:
+            self.assertIn("AC", record.INFO) 
+            self.assertEqual([2], record.INFO["AC"])
+            self.assertIn("AF", record.INFO) 
+            self.assertEqual([1.0], record.INFO["AF"])
+            self.assertIn("AN", record.INFO) 
+            self.assertEqual([2], record.INFO["AN"])
+            self.assertIn("DB", record.INFO) 
+            self.assertEqual(True, record.INFO["DB"])
+
     def test_info(self):
         old_stderr = sys.stderr
         sys.stderr = StringIO()

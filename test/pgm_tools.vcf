@@ -1,0 +1,57 @@
+##fileformat=VCFv4.1
+##CombineVariants="analysis_type=CombineVariants input_file=[] read_buffer_size=null phone_home=NO_ET read_filter=[] intervals=null excludeIntervals=null interval_set_rule=UNION interval_merging=ALL reference_sequence=/Genomes/H.sapiens/hg19/human_hg19.fa rodBind=[] nonDeterministicRandomSeed=false downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 performanceLog=null useOriginalQualities=false defaultBaseQualities=-1 validation_strictness=SILENT unsafe=null num_threads=1 num_cpu_threads=null num_io_threads=null num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false logging_level=INFO log_to_file=null help=false variant=[(RodBinding name=variant source=s_A673___SNP.vcf), (RodBinding name=variant2 source=s_CW9019___SNP.vcf), (RodBinding name=variant3 source=s_H358___SNP.vcf), (RodBinding name=variant4 source=s_H460___SNP.vcf), (RodBinding name=variant5 source=s_HCC827___SNP.vcf), (RodBinding name=variant6 source=s_PC9___SNP.vcf), (RodBinding name=variant7 source=s_RD___SNP.vcf), (RodBinding name=variant8 source=s_SMS_CTR___SNP.vcf)] out=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub NO_HEADER=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub sites_only=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub genotypemergeoption=PRIORITIZE filteredrecordsmergetype=KEEP_IF_ANY_UNFILTERED rod_priority_list=variant3,variant4,variant2,variant8,variant7,variant6,variant5,variant printComplexMerges=false filteredAreUncalled=false minimalVCF=false setKey=set assumeIdenticalSamples=false minimumN=1 mergeInfoWithMaxAC=false filter_mismatching_base_and_quals=false"
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the REF and ALT alleles in the order listed in the ALT field">
+##FORMAT=<ID=AMQV,Number=.,Type=Integer,Description="Allelic average base qv for the REF and ALT alleles in the order listed  in the ALT field">
+##FORMAT=<ID=AST,Number=.,Type=Integer,Description="Allelic unique start positions for the REF and ALT alleles in the order listed in the ALT field">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Filtered Read Depth">
+##FORMAT=<ID=GL,Number=.,Type=String,Description="Genotype Likelihood, number of values is (#ALT+1)*(#ALT+2)/2">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##INFO=<ID=SNPEFF_AMINO_ACID_CHANGE,Number=1,Type=String,Description="Old/New amino acid for the highest-impact effect resulting from the current variant (in HGVS style)">
+##INFO=<ID=SNPEFF_CODON_CHANGE,Number=1,Type=String,Description="Old/New codon for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_EFFECT,Number=1,Type=String,Description="The highest-impact effect resulting from the current variant (or one of the highest-impact effects, if there is a tie)">
+##INFO=<ID=SNPEFF_EXON_ID,Number=1,Type=String,Description="Exon ID for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_FUNCTIONAL_CLASS,Number=1,Type=String,Description="Functional class of the highest-impact effect resulting from the current variant: [NONE, SILENT, MISSENSE, NONSENSE]">
+##INFO=<ID=SNPEFF_GENE_BIOTYPE,Number=1,Type=String,Description="Gene biotype for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_GENE_NAME,Number=1,Type=String,Description="Gene name for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_IMPACT,Number=1,Type=String,Description="Impact of the highest-impact effect resulting from the current variant [MODIFIER, LOW, MODERATE, HIGH]">
+##INFO=<ID=SNPEFF_TRANSCRIPT_ID,Number=1,Type=String,Description="Transcript ID for the highest-impact effect resulting from the current variant">
+##INFO=<ID=set,Number=1,Type=String,Description="Source VCF for the merged record in CombineVariants">
+##OriginalSnpEffCmd="SnpEff eff -c /SNPeff/snpEff_2_0_5d/snpEff.config -i vcf -o vcf -chr chr -v hg19 ../retagged.vcf "
+##OriginalSnpEffVersion="2.0.5 (build 2012-01-12), by Pablo Cingolani"
+##VariantAnnotator="analysis_type=VariantAnnotator input_file=[] read_buffer_size=null phone_home=NO_ET read_filter=[] intervals=[chr1] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL reference_sequence=/genomes/human/hg19/hg19.fa rodBind=[] nonDeterministicRandomSeed=false downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=1000 baq=OFF baqGapOpenPenalty=40.0 performanceLog=null useOriginalQualities=false defaultBaseQualities=-1 validation_strictness=SILENT unsafe=null num_threads=1 num_cpu_threads=null num_io_threads=null num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false logging_level=INFO log_to_file=null help=false variant=(RodBinding name=variant source=../retagged.vcf) snpEffFile=(RodBinding name=snpEffFile source=annote.vcf) dbsnp=(RodBinding name= source=UNBOUND) comp=[] resource=[] out=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub NO_HEADER=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub sites_only=org.broadinstitute.sting.gatk.io.stubs.VCFWriterStub annotation=[SnpEff] excludeAnnotation=[] group=[] expression=[] useAllAnnotations=false list=false vcfContainsOnlyIndels=false MendelViolationGenotypeQualityThreshold=0.0 requireStrictAlleleMatch=false filter_mismatching_base_and_quals=false"
+##contig=<ID=chr1,length=249250621,assembly=hg19>
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr10,length=135534747,assembly=hg19>
+##contig=<ID=chr11,length=135006516,assembly=hg19>
+##contig=<ID=chr12,length=133851895,assembly=hg19>
+##contig=<ID=chr13,length=115169878,assembly=hg19>
+##contig=<ID=chr14,length=107349540,assembly=hg19>
+##contig=<ID=chr15,length=102531392,assembly=hg19>
+##contig=<ID=chr16,length=90354753,assembly=hg19>
+##contig=<ID=chr17,length=81195210,assembly=hg19>
+##contig=<ID=chr18,length=78077248,assembly=hg19>
+##contig=<ID=chr19,length=59128983,assembly=hg19>
+##contig=<ID=chr2,length=243199373,assembly=hg19>
+##contig=<ID=chr20,length=63025520,assembly=hg19>
+##contig=<ID=chr21,length=48129895,assembly=hg19>
+##contig=<ID=chr22,length=51304566,assembly=hg19>
+##contig=<ID=chr3,length=198022430,assembly=hg19>
+##contig=<ID=chr4,length=191154276,assembly=hg19>
+##contig=<ID=chr5,length=180915260,assembly=hg19>
+##contig=<ID=chr6,length=171115067,assembly=hg19>
+##contig=<ID=chr7,length=159138663,assembly=hg19>
+##contig=<ID=chr8,length=146364022,assembly=hg19>
+##contig=<ID=chr9,length=141213431,assembly=hg19>
+##contig=<ID=chrM,length=16571,assembly=hg19>
+##contig=<ID=chrX,length=155270560,assembly=hg19>
+##contig=<ID=chrY,length=59373566,assembly=hg19>
+##fileDate=20120427
+##reference=file:///Genomes/H.sapiens/hg19/human_hg19.fa
+##reference=file:///genomes/human/hg19/hg19.fa
+##reference=file:///hg_v19.fasta
+##source=diBayes
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	A673	CW9019	H358	H460	HCC827	PC9	RD	SMS_CTR
+chr1	726107	rs6699876	T	G	15	PASS	AC=2;AF=1.00;AN=2;DB;DP=6;SNPEFF_EFFECT=INTERGENIC;SNPEFF_FUNCTIONAL_CLASS=NONE;SNPEFF_IMPACT=MODIFIER;set=variant3	GT:AD:AMQV:AST:DP:FDP:GL:GQ	./.	./.	1/1:0,2:0,20:0,1:6:2:-1.51,-1.51,-0.03:12.04	./.	./.	./.	./.	./.

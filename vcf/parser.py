@@ -588,7 +588,8 @@ class Reader(object):
                     else:
                         entry_type = 'Flag'
 
-            if entry_num == 0 and entry_type == 'Flag':
+            if (entry_num is None and len(entry) == 1) \
+                or (entry_num == 0 and entry_type == 'Flag'):
                 val = True
             else:
                 val = entry[1].split(',')
